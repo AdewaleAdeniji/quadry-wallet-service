@@ -1,0 +1,4 @@
+- App Authentication
+- Wallet creation (account - true/false)
+- Check virtual/wallet account balance
+- webhook for receiving transfers

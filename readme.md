@@ -1,0 +1,5 @@
+- creates virtual account
+- accepts payment to virtual accounts
+- logs all webhooks 
+- logs all incoming requests
+- generates random payment ID for accounts
