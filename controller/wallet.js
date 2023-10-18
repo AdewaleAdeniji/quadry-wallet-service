@@ -88,9 +88,7 @@ const FundWallet = WrapHandler(async (req, res) => {
   const appID = req.appID;
   const walletID = req.params.walletID;
   const body = req?.body;
-  const val = validateRequest(body, [
-    "amount",
-  ]);
+  const val = validateRequest(body, ["amount"]);
   if (val) return res.status(400).send(val);
   const wallet = await getWallet(walletID, appID);
 
@@ -99,39 +97,59 @@ const FundWallet = WrapHandler(async (req, res) => {
       message: "Wallet not found",
     });
 
-    // at this point, we want to generate account details and save it on the wallet
-    // we will create funding model too and save it
-  
-    const configs = await getConfig(req.appID);
-    const flw = new Flutterwave(
-      configs.flutterwaveKey.FLW_PUBLIC_KEY,
-      configs.flutterwaveKey.FLW_SECRET_KEY
-    );
-    const payload = {
-      email: body.email,
-      amount: body?.amount,
-      is_permanent: false,
-    };
-    console.log(payload);
-    const createAccount = await createFlutterwaveVirtualAccount(flw, payload);
-    if (!createAccount.success) return res.status(400).send(createAccount);
-    console.log(createAccount)
-    const walletAccount = {
-      bank: createAccount.data.bank_name,
-      number: createAccount.data.account_number,
-      created: createAccount.data.created_at,
-      expires: createAccount.data.expiry_date,
-    };
-    const updates = { accountRef: payload.email };
-    const updateWallet = await walletModel.findByIdAndUpdate(wallet._id, {
-      walletAccount,
-      ...updates
-    });
+  // at this point, we want to generate account details and save it on the wallet
+  // we will create funding model too and save it
 
-    const response = {
-      ...walletAccount
-    }
-  return res.status(200).send({ });
+  const configs = await getConfig(req.appID);
+  const flw = new Flutterwave(
+    configs.flutterwaveKey.FLW_PUBLIC_KEY,
+    configs.flutterwaveKey.FLW_SECRET_KEY
+  );
+  const internalCharge = 1;
+  const payload = {
+    email: body.email,
+    amount: parseInt(body?.amount) + internalCharge,
+    is_permanent: false,
+  };
+  console.log(payload);
+  const createAccount = await createFlutterwaveVirtualAccount(flw, payload);
+  if (!createAccount.success) return res.status(400).send({ message: "Failed to initiate payment gateway" });
+  console.log(createAccount);
+  const walletAccount = {
+    bank: createAccount.data.bank_name,
+    number: createAccount.data.account_number,
+    created: createAccount.data.created_at,
+    expires: createAccount.data.expiry_date,
+  };
+  const updates = {
+    accountRef: payload.email,
+    walletMetaData: {
+      fundingPending: true,
+      expectedAmount: createAccount.data.amount,
+      fee:
+        parseInt(createAccount.data.amount) -
+        parseInt(payload.amount) +
+        internalCharge,
+      internalCharge,
+    },
+  };
+  const updateWallet = await walletModel.findByIdAndUpdate(wallet._id, {
+    walletAccount,
+    ...updates,
+  });
+  if (!updateWallet)
+    return res.status(400).send({ message: "Request Failed!" });
+  const response = {
+    ...walletAccount,
+    expectedAmount: createAccount.data.amount,
+    fee:
+      parseInt(createAccount.data.amount) -
+      parseInt(payload.amount) +
+      internalCharge,
+    internalCharge,
+    walletID,
+  };
+  return res.status(200).send(response);
 });
 const GetWalletByRef = WrapHandler(async (req, res) => {
   // walletid, appid

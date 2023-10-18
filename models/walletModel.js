@@ -50,7 +50,7 @@ const walletSchema = new Schema(
     walletStatusText: {
       type: String,
       default: WalletStatus.ACTIVE,
-    },    
+    },
     isCustomerWallet: {
       type: Boolean,
       default: true,
@@ -66,6 +66,10 @@ const walletSchema = new Schema(
     lastTransacted: {
       type: String,
       default: "",
+    },
+    walletMetaData: {
+      type: Object,
+      default: {},
     },
   },
   {
