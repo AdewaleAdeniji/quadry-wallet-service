@@ -18,6 +18,7 @@ const {
 const { getApiApp } = require("../services/apiApps");
 const walletModel = require("../models/walletModel");
 const transactionsModel = require("../models/transactionsModel");
+const { createPayment } = require("../services/PaymentService");
 
 // create wallet
 // get wallet requires PIN
@@ -111,9 +112,11 @@ const FundWallet = WrapHandler(async (req, res) => {
     amount: parseInt(body?.amount) + internalCharge,
     is_permanent: false,
   };
-  console.log(payload);
-  const createAccount = await createFlutterwaveVirtualAccount(flw, payload);
-  if (!createAccount.success) return res.status(400).send({ message: "Failed to initiate payment gateway" });
+  const createAccount = await createFlutterwaveVirtualAccount(flw, payload, true);
+  if (!createAccount.success)
+    return res
+      .status(400)
+      .send({ message: "Failed to initiate payment gateway" });
   console.log(createAccount);
   const walletAccount = {
     bank: createAccount.data.bank_name,
@@ -121,33 +124,23 @@ const FundWallet = WrapHandler(async (req, res) => {
     created: createAccount.data.created_at,
     expires: createAccount.data.expiry_date,
   };
-  const updates = {
-    accountRef: payload.email,
-    walletMetaData: {
-      fundingPending: true,
-      expectedAmount: createAccount.data.amount,
-      fee:
-        parseInt(createAccount.data.amount) -
-        parseInt(payload.amount) +
-        internalCharge,
-      internalCharge,
-    },
-  };
-  const updateWallet = await walletModel.findByIdAndUpdate(wallet._id, {
-    walletAccount,
-    ...updates,
-  });
-  if (!updateWallet)
-    return res.status(400).send({ message: "Request Failed!" });
-  const response = {
+  const payment = {
     ...walletAccount,
+    accountRef: createAccount.data.flw_ref,
     expectedAmount: createAccount.data.amount,
     fee:
-      parseInt(createAccount.data.amount) -
-      parseInt(payload.amount) +
-      internalCharge,
+      (parseFloat(createAccount.data.amount) -
+      parseFloat(payload.amount) +
+      internalCharge).toFixed(2),
     internalCharge,
     walletID,
+  };
+  // create the payment model here
+  const createPayments = await createPayment(payment);
+  if(!createPayments) return res.status(400).send({message: "Failed to initiate payment"})
+  const response = {
+    paymentID: createPayments.paymentID,
+    ...walletAccount,
   };
   return res.status(200).send(response);
 });
@@ -285,7 +278,7 @@ const GetWalletTransactions = WrapHandler(async (req, res) => {
   const transactions = await transactionsModel.find({
     walletID,
     appID,
-  });
+  }).select('-transactionMetaData');
   return res.send({
     transactions,
     total: transactions.length,

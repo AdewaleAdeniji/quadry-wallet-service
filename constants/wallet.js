@@ -14,3 +14,10 @@ exports.WalletStatus = {
   SUSPENDED: "SUSPENDED",
   PND: "PND",
 };
+
+exports.PaymentStatusTexts = {
+  PENDING: "pending",
+  SUCCESSFUL: "successful",
+  FAILED: "failed",
+  REVERSED: "reversed",
+};

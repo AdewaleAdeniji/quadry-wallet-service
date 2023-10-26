@@ -60,7 +60,7 @@ const WrapHandler = (controllerFn) => {
     try {
       await controllerFn(req, res, next);
     } catch (err) {
-      console.log(err);
+       // console.log(err);
       if (err.code === 11000) {
         return res
           .status(500)

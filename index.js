@@ -8,19 +8,29 @@ const { CreateApiApp } = require("./controller/apiApps");
 const { validateApp, validateAppID } = require("./middlewares/app");
 const appRouter = require("./routes/app.routes");
 const walletRouter = require("./routes/wallets.routes");
-const { FlutterwaveWebhook } = require("./controller/webhook");
+const {
+  FlutterwaveWebhook,
+  NewFlutterwaveWebhook,
+} = require("./controller/webhook");
 require("dotenv").config();
 
 app.use(cors({ origin: "*" }));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(function (error, _, res, next) {
+  //Catch json error
+  if (error) {
+    return res.status(400).send({ message: "Invalid Request" });
+  }
+  next();
+});
 
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post("/apps/create", CreateApiApp);
 app.use("/apps", validateApp, appRouter);
 app.use("/wallets", validateAppID, walletRouter);
 
-app.post("/flutterwave/hook", FlutterwaveWebhook);
+app.post("/flutterwave/hook", NewFlutterwaveWebhook);
 
 app.get("/health", (_, res) => {
   return res.status(200).send("OK");

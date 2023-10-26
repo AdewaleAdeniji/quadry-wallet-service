@@ -1,4 +1,7 @@
 // const Flutterwave = require('flutterwave-node-v3');
+
+const { generateID } = require("../utils");
+
 // const flw = new Flutterwave(process.env.FLW_PUBLIC_KEY, process.env.FLW_SECRET_KEY);
 exports.verifyTransactionID = async (flw, trxId) => {
     return {
@@ -6,7 +9,7 @@ exports.verifyTransactionID = async (flw, trxId) => {
         "status": "success",
         "message": "Transaction fetched successfully",
         "data": {
-          "id": 288200108,
+          "id": trxId,
           "tx_ref": "LiveCardTest",
           "flw_ref": "YemiDesola/FLW275407301",
           "device_fingerprint": "N/A",
@@ -57,7 +60,27 @@ exports.verifyTransactionID = async (flw, trxId) => {
     };
   }
 };
-exports.createFlutterwaveVirtualAccount = async (flw, payload) => {
+exports.createFlutterwaveVirtualAccount = async (flw, payload, test) => {
+  if(test){
+    return {
+      success: true,
+      status: 'success',
+      message: 'Virtual account created',
+      data: {
+        response_code: '02',
+        response_message: 'Transaction in progress',
+        flw_ref: 'FLW-767d421e482f4a618d84657b39ab0557'+generateID(),
+        order_ref: 'URF_1697705841802_5657135',
+        account_number: '9465793923',
+        frequency: 'N/A',
+        bank_name: 'WEMA BANK',
+        created_at: '2023-10-19 08:57:27',
+        expiry_date: '2023-10-19 09:57:27',
+        note: 'Please make a bank transfer to DataleumXYZ FLW',
+        amount: ((payload?.amount) + (payload?.amount * 0.014)).toFixed(2)
+      }
+    }
+  }
   // return {
   //   success: true,
   //   status: "success",
