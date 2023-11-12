@@ -41,7 +41,6 @@ const CreateWallet = WrapHandler(async (req, res) => {
   body.appID = req.appID;
   body.walletType = body.isPermanent ? WalletTypes.PERM : WalletTypes.TEMP;
   const walletExist = await getWalletByWalletRef(body.walletRef, req.appID);
-  console.log(walletExist)
   if (walletExist) return res.status(200).send(walletExist);
   // need to build integration for virtual accounts
   if (body.isVirtualAccount) {
@@ -116,7 +115,11 @@ const FundWallet = WrapHandler(async (req, res) => {
     amount: parseInt(body?.amount) + internalCharge,
     is_permanent: false,
   };
-  const createAccount = await createFlutterwaveVirtualAccount(flw, payload, true);
+  const createAccount = await createFlutterwaveVirtualAccount(
+    flw,
+    payload,
+    true
+  );
   if (!createAccount.success)
     return res
       .status(400)
@@ -132,16 +135,18 @@ const FundWallet = WrapHandler(async (req, res) => {
     ...walletAccount,
     accountRef: createAccount.data.flw_ref,
     expectedAmount: createAccount.data.amount,
-    fee:
-      (parseFloat(createAccount.data.amount) -
+    fee: (
+      parseFloat(createAccount.data.amount) -
       parseFloat(payload.amount) +
-      internalCharge).toFixed(2),
+      internalCharge
+    ).toFixed(2),
     internalCharge,
     walletID,
   };
   // create the payment model here
   const createPayments = await createPayment(payment);
-  if(!createPayments) return res.status(400).send({message: "Failed to initiate payment"})
+  if (!createPayments)
+    return res.status(400).send({ message: "Failed to initiate payment" });
   const response = {
     paymentID: createPayments.paymentID,
     ...walletAccount,
@@ -184,6 +189,7 @@ const MoveFunds = async (
   if (!debitWallet)
     return { success: false, message: "Debit Wallet not found " };
   // check if balance is sufficient
+  console.log(amount, debitWallet.walletBalance)
   if (amount > debitWallet.walletBalance) {
     return {
       success: false,
@@ -232,6 +238,38 @@ const MoveFunds = async (
     success: true,
   };
 };
+const TransferWalletFundsToMaster = WrapHandler(async (req, res) => {
+  const { amount, debitWalletID } = req.params;
+  const appID = req.appID;
+  const body = req.body;
+  const val = validateRequest(body, ["transactionDescription"]);
+  if (val) return res.status(400).send(val);
+  const debitWallet = await getWallet(debitWalletID, appID);
+  if (!debitWallet)
+    return res.status(400).send({ message: "Wallet not found " });
+  //   console.log(debitWallet);
+  if (debitWallet.walletBalance == 0)
+    return res.status(400).send({
+      message: "Insufficient Balance to continue this transaction",
+    });
+  if (!debitWallet.isCustomerWallet)
+    return res.status(400).send({
+      message: "Cannot perform transaction on this wallet",
+    });
+  const app = await getApiApp(appID);
+  // get wallet ID and move fund
+  const move = await MoveFunds(
+    appID,
+    amount,
+    app.appMasterWalletID,
+    debitWalletID,
+    body.transactionDescription,
+    {},
+    {}
+  );
+  if (!move.success) return res.status(400).send(move);
+  return res.send(move);
+});
 
 // receiving transfers
 // moving funds from master to children and funding master wallets
@@ -279,10 +317,12 @@ const GetWalletTransactions = WrapHandler(async (req, res) => {
       transactions: [],
       message: "No wallet found",
     });
-  const transactions = await transactionsModel.find({
-    walletID,
-    appID,
-  }).select('-transactionMetaData');
+  const transactions = await transactionsModel
+    .find({
+      walletID,
+      appID,
+    })
+    .select("-transactionMetaData");
   return res.send({
     transactions,
     total: transactions.length,
@@ -327,4 +367,5 @@ module.exports = {
   GetAppTransactions,
   GetAppWallets,
   FundWallet,
+  TransferWalletFundsToMaster,
 };

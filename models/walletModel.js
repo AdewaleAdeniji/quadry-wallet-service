@@ -32,7 +32,7 @@ const walletSchema = new Schema(
       },
     },
     walletBalance: {
-      type: Number,
+      type: mongoose.Types.Decimal128,
       default: 0,
     },
     walletPIN: {

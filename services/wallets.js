@@ -10,6 +10,7 @@ exports.createWallet = async (wallet) => {
 exports.getWallet = async (walletID, appID) => {
   return await WalletModel.findOne({
     walletID,
+    appID,
   });
 };
 exports.getWalletByWalletRef = async (walletRef, appID) => {
