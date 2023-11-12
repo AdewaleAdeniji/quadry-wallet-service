@@ -40,6 +40,9 @@ const CreateWallet = WrapHandler(async (req, res) => {
   body.walletID = generateID();
   body.appID = req.appID;
   body.walletType = body.isPermanent ? WalletTypes.PERM : WalletTypes.TEMP;
+  const walletExist = await getWalletByWalletRef(body.walletRef, req.appID);
+  console.log(walletExist)
+  if (walletExist) return res.status(200).send(walletExist);
   // need to build integration for virtual accounts
   if (body.isVirtualAccount) {
     // create virtual account here
@@ -54,6 +57,7 @@ const CreateWallet = WrapHandler(async (req, res) => {
       is_permanent: body.isPermanent,
     };
     console.log(payload);
+
     const createAccount = await createFlutterwaveVirtualAccount(flw, payload);
     if (!createAccount.success) return res.status(400).send(createAccount);
     body.walletAccount = {
