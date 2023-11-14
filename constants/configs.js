@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-const USE_TEST_KEYS = process.env.USE_TEST_KEYS || true;
+const USE_TEST_KEYS = false //process.env.USE_TEST_KEYS || true;
 exports.configs = {
   testKeys: USE_TEST_KEYS,
   FLUTTERWAVE_PUBKEY: USE_TEST_KEYS

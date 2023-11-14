@@ -1,7 +1,7 @@
 const { validateRequest, WrapHandler } = require("../middlewares/app");
 const hookLogs = require("../models/hookLogs");
 const { verifyTransactionID } = require("../services/flutterwaveService");
-const { getWalletByAccountRef, getWallet } = require("../services/wallets");
+const { getWalletByAccountRef, getWallet, getWalletWebhook } = require("../services/wallets");
 const { generateID } = require("../utils");
 const Flutterwave = require("flutterwave-node-v3");
 const { getConfig } = require("./configHandler");
@@ -66,11 +66,13 @@ const NewFlutterwaveWebhook = WrapHandler(async (req, res) => {
     // not a bank transfer do another thing
     console.log("unknown hook received");
   }
-  const payment = await getPaymentByAccountRef(body.data.flw_ref);
+  const payment = await getPaymentByAccountRef(body.data.customer.email);
   if (!payment) return res.status(200).send({ message: "Payment not found " });
   const walletID = payment?.walletID;
-  const wallet = await getWallet(walletID);
-  const appID = wallet.appID;
+  console.log(payment)
+  const wallet = await getWalletWebhook(walletID);
+  console.log(wallet)
+  const appID = wallet?.appID;
   const configs = await getConfig(appID);
   if (!configs)
     return res.status(200).send({ message: "App or config not found" });
@@ -85,7 +87,7 @@ const NewFlutterwaveWebhook = WrapHandler(async (req, res) => {
   const transactionExist = await paymentModel.findOne({
     transactionID: verify.data.id,
   });
-  if(transactionExist) return res.status(400).send({message: "Transaction already honored"})
+  // if(transactionExist) return res.status(400).send({message: "Transaction already honored"})
   const paymentStatus = verify.data.status === "successful" ? true : false;
   const paymentStatusText = verify.data.status;
 
@@ -104,6 +106,7 @@ const NewFlutterwaveWebhook = WrapHandler(async (req, res) => {
   const updatePayment  = await paymentModel.updateOne({paymentID: payment.paymentID}, paymentUpdate)
   if(!updatePayment) return res.status(400).send({message: "Failed to HONOR payment"});
   // Wallet balance webhook
+  if(!paymentStatus) return res.status(400).send({message: "Payment not successful"});
   const move = await MoveFunds(
     appID,
     verify.data.amount_settled,

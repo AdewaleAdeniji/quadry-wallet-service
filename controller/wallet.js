@@ -111,7 +111,7 @@ const FundWallet = WrapHandler(async (req, res) => {
   );
   const internalCharge = 1;
   const payload = {
-    email: body.email,
+    email: generateID() + "@startlify.xyz",
     amount: parseInt(body?.amount) + internalCharge,
     is_permanent: false,
   };
@@ -133,7 +133,7 @@ const FundWallet = WrapHandler(async (req, res) => {
   };
   const payment = {
     ...walletAccount,
-    accountRef: createAccount.data.flw_ref,
+    accountRef: payload.email,
     expectedAmount: createAccount.data.amount,
     fee: (
       parseFloat(createAccount.data.amount) -
@@ -150,6 +150,7 @@ const FundWallet = WrapHandler(async (req, res) => {
   const response = {
     paymentID: createPayments.paymentID,
     ...walletAccount,
+    ...payment
   };
   return res.status(200).send(response);
 });

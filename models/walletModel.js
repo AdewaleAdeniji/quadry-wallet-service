@@ -34,6 +34,7 @@ const walletSchema = new Schema(
     walletBalance: {
       type: mongoose.Types.Decimal128,
       default: 0,
+      get: (v) => v.toString(),
     },
     walletPIN: {
       type: String,
@@ -76,4 +77,8 @@ const walletSchema = new Schema(
     timestamps: true,
   }
 );
+// set getters to true
+walletSchema.set("toObject", { getters: true });
+walletSchema.set("toJSON", { getters: true });
+
 module.exports = mongoose.model("wallets", walletSchema);

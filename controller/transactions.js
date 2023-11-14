@@ -16,13 +16,13 @@ const createDebitTransaction = async (
     transactionDescription,
     transactionDirection: "DEBIT",
     oldBalance: wallet?.walletBalance,
-    newBalance: wallet?.walletBalance - amount,
+    newBalance: parseFloat(wallet?.walletBalance) - parseFloat(amount),
     transactionMetaData: meta,
     transactionID: generateID(),
   };
   // update wallet balance
   const walletUpdate = {
-    walletBalance: wallet.walletBalance - amount,
+    walletBalance: parseFloat(wallet.walletBalance) - parseFloat(amount),
     lastTransacted: Date.now(),
     _id: wallet._id,
   };
@@ -45,13 +45,13 @@ const createCreditTransaction = async (
     transactionDescription,
     transactionDirection: "CREDIT",
     oldBalance: wallet?.walletBalance,
-    newBalance: wallet?.walletBalance + amount,
+    newBalance: parseFloat(wallet?.walletBalance) + parseFloat(amount),
     transactionMetaData: meta,
     transactionID: generateID(),
   };
   // update wallet balance
   const walletUpdate = {
-    walletBalance: wallet.walletBalance + amount,
+    walletBalance: parseFloat(wallet.walletBalance) + parseFloat(amount),
     lastTransacted: Date.now(),
     _id: wallet._id,
   };

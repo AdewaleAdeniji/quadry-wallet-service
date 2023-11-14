@@ -17,6 +17,16 @@ const transactionsSchema = new Schema(
       type: String,
       immutable: true,
     },
+    oldBalance: {
+      type: mongoose.Types.Decimal128,
+      default: 0,
+      get: (v) => v.toString(),
+    },
+    newBalance: {
+      type: mongoose.Types.Decimal128,
+      default: 0,
+      get: (v) => v.toString(),
+    },
     transactionDescription: String,
     transactionDirection: String,
     transactionMetaData: {
@@ -28,4 +38,7 @@ const transactionsSchema = new Schema(
     timestamps: true,
   }
 );
+transactionsSchema.set("toObject", { getters: true });
+transactionsSchema.set("toJSON", { getters: true });
+
 module.exports = mongoose.model("wallet-transactions", transactionsSchema);

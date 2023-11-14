@@ -10,6 +10,7 @@ const {
   FundWallet,
   TransferWalletFundsToMaster
 } = require("../controller/wallet");
+const { BuyAirtime } = require("../controller/spend");
 
 const walletRouter = express.Router();
 
@@ -23,5 +24,7 @@ walletRouter.route("/apps/list").get(GetAppWallets);
 
 walletRouter.route("/transactions/app").get(GetAppTransactions);
 walletRouter.route("/transactions/:walletID").get(GetWalletTransactions);
+
+walletRouter.route("/spend/airtime/:debitWalletID").post(BuyAirtime);
 
 module.exports = walletRouter;

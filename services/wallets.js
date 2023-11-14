@@ -13,6 +13,11 @@ exports.getWallet = async (walletID, appID) => {
     appID,
   });
 };
+exports.getWalletWebhook = async (walletID, appID) => {
+  return await WalletModel.findOne({
+    walletID,
+  });
+};
 exports.getWalletByWalletRef = async (walletRef, appID) => {
   return await WalletModel.findOne({
     walletRef,

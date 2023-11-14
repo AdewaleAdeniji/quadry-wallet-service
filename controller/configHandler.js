@@ -1,7 +1,7 @@
 const { configs } = require("../constants/configs");
 const { getApiApp } = require("../services/apiApps");
 
-const defaultFlutterwaveConfig = {
+ const defaultFlutterwaveConfig = {
   FLW_PUBLIC_KEY: configs.FLUTTERWAVE_PUBKEY,
   FLW_SECRET_KEY: configs.FLUTTERWAVE_SECKEY,
 };
@@ -21,4 +21,5 @@ const getConfig = async (appID) => {
 
 module.exports = {
   getConfig,
+  defaultFlutterwaveConfig
 };
