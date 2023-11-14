@@ -71,7 +71,7 @@ const NewFlutterwaveWebhook = WrapHandler(async (req, res) => {
   const walletID = payment?.walletID;
   console.log(payment)
   const wallet = await getWalletWebhook(walletID);
-  console.log(wallet)
+  // console.log(wallet)
   const appID = wallet?.appID;
   const configs = await getConfig(appID);
   if (!configs)
@@ -92,7 +92,7 @@ const NewFlutterwaveWebhook = WrapHandler(async (req, res) => {
   const paymentStatusText = verify.data.status;
 
   const paymentUpdate = {
-    amountReceived: verify.data.amount_settled,
+    amountReceived: verify.data.amount_settled - payment.internalCharge,
     transactionID: verify.data.id,
     paymentStatus,
     paymentStatusText,
@@ -109,7 +109,7 @@ const NewFlutterwaveWebhook = WrapHandler(async (req, res) => {
   if(!paymentStatus) return res.status(400).send({message: "Payment not successful"});
   const move = await MoveFunds(
     appID,
-    verify.data.amount_settled,
+    verify.data.amount_settled - payment.internalCharge,
     wallet.walletID,
     configs.masterWallet,
     "Wallet Funding",

@@ -10,9 +10,9 @@ const { buyAirtime } = require("../services/flutterwaveService");
 const BuyAirtime = WrapHandler(async (req, res) => {
   const body = req.body;
   const { debitWalletID } = req.params;
-  const val = validateRequest(body, ["number", "amount", "network"]);
+  const val = validateRequest(body, ["number", "amount"]);
   if (val) return res.status(400).send(val);
-  const { amount, number, network } = body;
+  const { amount, number } = body;
   const appID = req.appID;
   const debitWallet = await getWallet(debitWalletID, appID);
   if (!debitWallet)
@@ -39,7 +39,7 @@ const BuyAirtime = WrapHandler(async (req, res) => {
   );
   if (!move.success)
     return res.status(400).send({
-      message: "Airtime topup failed",
+      message: "Airtime topup failed.",
       success: false,
     });
 
@@ -48,8 +48,9 @@ const BuyAirtime = WrapHandler(async (req, res) => {
     configs.flutterwaveKey.FLW_PUBLIC_KEY,
     configs.flutterwaveKey.FLW_SECRET_KEY
   );
+  console.log(number, amount)
   const buy = await buyAirtime(flw, number, amount);
-  // console.log(buy);
+  console.log(buy);
   if (!buy.success) {
     // reverse money
     const move = await MoveFunds(
@@ -61,15 +62,16 @@ const BuyAirtime = WrapHandler(async (req, res) => {
       {},
       {}
     );
-
     return res.status(400).send({
       message: "Airtime topup failed",
       success: false,
+      //...buy,
     });
   }
   return res.status(200).send({
     message: "Airtime topup successful",
     success: true,
+    //...buy,
   });
 });
 
