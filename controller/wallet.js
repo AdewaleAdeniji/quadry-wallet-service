@@ -194,7 +194,7 @@ const MoveFunds = async (
   if (amount > debitWallet.walletBalance) {
     return {
       success: false,
-      message: "Insufficient balance on debit",
+      message: "Insufficient balance to complete this transaction.",
     };
   }
   //console.log(destinationWalletID)

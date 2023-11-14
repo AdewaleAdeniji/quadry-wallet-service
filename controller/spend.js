@@ -12,7 +12,9 @@ const BuyAirtime = WrapHandler(async (req, res) => {
   const { debitWalletID } = req.params;
   console.log(req.body)
   const val = validateRequest(body, ["number", "amount"]);
-  if (val) return res.status(400).send(val);
+  if (val) { 
+    return res.status(400).send(val);
+  }
   const { amount, number } = body;
   const appID = req.appID;
   const debitWallet = await getWallet(debitWalletID, appID);
@@ -42,6 +44,7 @@ const BuyAirtime = WrapHandler(async (req, res) => {
     return res.status(400).send({
       message: "Airtime topup failed.",
       success: false,
+      ...move,
     });
 
   const configs = await getConfig(req.appID);
