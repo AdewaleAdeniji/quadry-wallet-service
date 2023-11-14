@@ -10,6 +10,7 @@ const { buyAirtime } = require("../services/flutterwaveService");
 const BuyAirtime = WrapHandler(async (req, res) => {
   const body = req.body;
   const { debitWalletID } = req.params;
+  console.log(req.body)
   const val = validateRequest(body, ["number", "amount"]);
   if (val) return res.status(400).send(val);
   const { amount, number } = body;
@@ -77,7 +78,7 @@ const BuyAirtime = WrapHandler(async (req, res) => {
 
 const templated = WrapHandler(async (req, res) => {
   const body = req.body;
-  const val = validateRequest(body, ["number", "amount", "network"]);
+  const val = validateRequest(body, ["number", "amount"]);
   if (val) return res.status(400).send(val);
   return res.sendStatus(200);
 });
