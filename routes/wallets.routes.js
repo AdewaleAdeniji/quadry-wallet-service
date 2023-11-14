@@ -11,12 +11,14 @@ const {
   TransferWalletFundsToMaster
 } = require("../controller/wallet");
 const { BuyAirtime } = require("../controller/spend");
+const { GetPayment } = require("../controller/payment");
 
 const walletRouter = express.Router();
 
 walletRouter.route("/create").post(CreateWallet);
 walletRouter.route("/:walletID").get(GetWallet);
 walletRouter.route("/fund/:walletID").post(FundWallet);
+walletRouter.route("/payment/:paymentID").get(GetPayment);
 walletRouter.route("/dump/:walletID").get(DumpWalletFundToMaster);
 walletRouter.route("/move/:amount/master/:debitWalletID").post(TransferWalletFundsToMaster);
 walletRouter.route("/walletRef/:walletRef").get(GetWalletByRef);

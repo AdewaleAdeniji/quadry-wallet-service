@@ -134,7 +134,7 @@ const FundWallet = WrapHandler(async (req, res) => {
   const payment = {
     ...walletAccount,
     accountRef: payload.email,
-    expectedAmount: createAccount.data.amount,
+    amountExpected: createAccount.data.amount,
     fee: (
       parseFloat(createAccount.data.amount) -
       parseFloat(payload.amount) +
